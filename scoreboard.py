@@ -1,4 +1,5 @@
 from turtle import Turtle
+from theme import TEXT_COLOR, GAME_OVER_COLOR
 
 FONT = ("Courier", 16, "normal")
 GAME_OVER_FONT = ("Courier", 24, "bold")
@@ -10,12 +11,12 @@ class Scoreboard(Turtle):
         self.score = 0
         self.level = 1
         self.hideturtle()
-        self.color("white")
         self.penup()
         self.update_display()
 
     def update_display(self):
         self.clear()
+        self.color(TEXT_COLOR)
         self.goto(0, 260)
         self.write(f"Score: {self.score}    Level: {self.level}", align="center", font=FONT)
 
@@ -28,6 +29,7 @@ class Scoreboard(Turtle):
         self.update_display()
 
     def game_over(self):
+        self.color(GAME_OVER_COLOR)
         self.goto(0, 0)
         self.write("GAME OVER", align="center", font=GAME_OVER_FONT)
         self.goto(0, -45)

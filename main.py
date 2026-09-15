@@ -3,24 +3,33 @@ import tkinter
 from turtle import Screen
 import time
 
+import theme
 from bullet import Bullet
-from player import Player
-from alien import Alien
-from barrier import Barrier
+from player import Player, register_player_shape
+from alien import Alien, register_alien_shape
+from barrier import Barrier, BARRIER_SHAPE_MASK
 from scoreboard import Scoreboard
+from theme import alien_color_for_row
+from starfield import Starfield
+from explosion import Explosion
+
 
 screen = Screen()
 screen.setup(width=800, height=600, startx=300, starty=950)
-screen.bgcolor("black")
+screen.bgcolor(theme.BACKGROUND_COLOR)
 screen.title("Space Invaders")
 screen.tracer(0)
+starfield = Starfield()
+register_player_shape(screen)
+register_alien_shape(screen)
 
 player = Player()
 scoreboard = Scoreboard()
 
+explosions = []
 bullets = []
 is_bullet_ready = True
-BULLET_COOLDOWN = 20
+BULLET_COOLDOWN = 10
 cooldown_counter = 0
 
 ALIEN_ROWS = 5
@@ -34,7 +43,7 @@ SCREEN_RIGHT_EDGE = 380
 aliens = []
 alien_direction = 1
 
-ALIEN_BASE_SPEED = 5
+ALIEN_BASE_SPEED = 3
 ALIEN_SPEED_INCREMENT = 1
 alien_speed = ALIEN_BASE_SPEED
 
@@ -45,18 +54,22 @@ GAME_OVER_LINE_Y = player.ycor() + 30
 BARRIER_HIT_DISTANCE = 20
 BARRIER_CENTERS_X = [-270, -90, 90, 270]
 BARRIER_Y_START = -150
-BARRIER_ROWS = 3
-BARRIER_COLUMNS = 4
 SEGMENT_SPACING = 12
 barriers = []
 
 
 
 def create_barriers():
+    rows = len(BARRIER_SHAPE_MASK)
+    cols = len(BARRIER_SHAPE_MASK[0])
+
     for center_x in BARRIER_CENTERS_X:
-        for row in range(BARRIER_ROWS):
-            for col in range(BARRIER_COLUMNS):
-                x = center_x + (col - BARRIER_COLUMNS / 2) * SEGMENT_SPACING
+        for row in range(rows):
+            for col in range(cols):
+                if not BARRIER_SHAPE_MASK[row][col]:
+                    continue
+
+                x = center_x + (col - cols / 2) * SEGMENT_SPACING
                 y = BARRIER_Y_START - row * SEGMENT_SPACING
                 segment = Barrier(x, y)
                 barriers.append(segment)
@@ -94,6 +107,8 @@ def check_bullet_alien_collision():
             if bullet.distance(alien) < ALIEN_HIT_DISTANCE:
                 bullet.hideturtle()
                 bullets.remove(bullet)
+                explosion_color = alien.fillcolor()
+                explosions.append(Explosion(alien.xcor(), alien.ycor(), explosion_color))
                 alien.hideturtle()
                 aliens.remove(alien)
                 scoreboard.increase_score(10)
@@ -104,6 +119,8 @@ def check_alien_player_collision():
     global game_is_on
     for alien in aliens:
         if alien.distance(player) < PLAYER_HIT_DISTANCE or alien.ycor() < GAME_OVER_LINE_Y:
+            explosions.append(Explosion(player.xcor(), player.ycor(), theme.PLAYER_COLOR))
+            player.hideturtle()
             game_is_on = False
             scoreboard.game_over()
             break
@@ -114,7 +131,8 @@ def create_fleet():
         for col in range(ALIEN_COLUMNS):
             x = ALIEN_START_X + col * ALIEN_COLUMN_SPACING
             y = ALIEN_START_Y - row * ALIEN_ROW_SPACING
-            new_alien = Alien(x, y)
+            color = alien_color_for_row(row)
+            new_alien = Alien(x, y, color)
             aliens.append(new_alien)
 
 create_fleet()
@@ -153,6 +171,11 @@ def restart_game():
         segment.hideturtle()
     barriers.clear()
 
+    for explosion in explosions:
+        explosion.force_finish()
+    explosions.clear()
+
+    player.showturtle()
     player.reset_position()
     scoreboard.reset()
 
@@ -171,12 +194,18 @@ screen.onkey(player.move_left, "Left")
 screen.onkey(player.move_right, "Right")
 screen.onkey(fire_bullet, "space")
 screen.onkey(restart_game, "r")
+screen.onkey(restart_game, "R")
 
 
 try:
     while True:
         time.sleep(0.02)
         screen.update()
+
+        for explosion in explosions[:]:
+            explosion.update()
+            if explosion.is_finished():
+                explosions.remove(explosion)
 
         if not game_is_on:
             continue
