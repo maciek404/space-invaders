@@ -13,8 +13,10 @@ SHAPE_POINTS = (
     (-8, -4), (-18, 0), (-5, 5),
 )
 
+
 def register_player_shape(screen):
     screen.register_shape(SHAPE_NAME, SHAPE_POINTS)
+
 
 class Player(Turtle):
     def __init__(self):

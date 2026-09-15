@@ -9,6 +9,7 @@ BARRIER_SHAPE_MASK = [
     [1, 1, 0, 0, 1, 1],
 ]
 
+
 class Barrier(Turtle):
     def __init__(self, x, y):
         super().__init__()

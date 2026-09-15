@@ -1,8 +1,7 @@
 from turtle import Turtle
-from theme import TEXT_COLOR, GAME_OVER_COLOR
+from theme import TEXT_COLOR, GAME_OVER_COLOR, FONT, GAME_OVER_FONT
 
-FONT = ("Courier", 16, "normal")
-GAME_OVER_FONT = ("Courier", 24, "bold")
+STARTING_LIVES = 3
 
 
 class Scoreboard(Turtle):
@@ -10,6 +9,7 @@ class Scoreboard(Turtle):
         super().__init__()
         self.score = 0
         self.level = 1
+        self.lives = STARTING_LIVES
         self.hideturtle()
         self.penup()
         self.update_display()
@@ -18,7 +18,8 @@ class Scoreboard(Turtle):
         self.clear()
         self.color(TEXT_COLOR)
         self.goto(0, 260)
-        self.write(f"Score: {self.score}    Level: {self.level}", align="center", font=FONT)
+        hearts = "♥︎ " * self.lives
+        self.write(f"Score: {self.score}    Level: {self.level}     {hearts.strip()}", align="center", font=FONT)
 
     def increase_score(self, points):
         self.score += points
@@ -26,6 +27,10 @@ class Scoreboard(Turtle):
 
     def next_level(self):
         self.level += 1
+        self.update_display()
+
+    def lose_life(self):
+        self.lives -= 1
         self.update_display()
 
     def game_over(self):
@@ -38,4 +43,5 @@ class Scoreboard(Turtle):
     def reset(self):
         self.score = 0
         self.level = 1
+        self.lives = STARTING_LIVES
         self.update_display()

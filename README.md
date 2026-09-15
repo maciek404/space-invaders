@@ -72,9 +72,7 @@ python main.py
 
 This is an active project. Ideas for further iteration:
 
-- Alien return fire
 - Sound effects
-- Multiple lives instead of instant game over
 
 ## What I Learned
 
